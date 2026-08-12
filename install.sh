@@ -82,18 +82,11 @@ build_module() {
 
 install_module() {
     echo_info "Installing kernel module..."
-    
+
     KERNEL_VERSION=$(uname -r)
-    
-    # Create updates directory
-    sudo mkdir -p "/lib/modules/$KERNEL_VERSION/updates"
-    
-    # Copy module
-    sudo cp "$MODULE_DIR/snd-soc-sof_da7219.ko" "/lib/modules/$KERNEL_VERSION/updates/"
-    
-    # Update module dependencies
-    sudo depmod -a
-    
+
+    sudo make -C "$MODULE_DIR" install
+
     echo_info "Module installed to /lib/modules/$KERNEL_VERSION/updates/"
 }
 
@@ -185,24 +178,19 @@ print_post_install() {
 
 uninstall() {
     echo_info "Uninstalling audio fix..."
-    
-    KERNEL_VERSION=$(uname -r)
-    
+
     # Remove module
-    sudo rm -f "/lib/modules/$KERNEL_VERSION/updates/snd-soc-sof_da7219.ko"
-    
+    sudo make -C "$MODULE_DIR" uninstall
+
     # Remove config
     sudo rm -f /etc/modprobe.d/audio-hda.conf
-    
+
     # Restore backup if present
     if [ -f /etc/modprobe.d/audio-hda.conf.bak ]; then
         sudo mv /etc/modprobe.d/audio-hda.conf.bak /etc/modprobe.d/audio-hda.conf
         echo_info "Restored previous config from backup."
     fi
-    
-    # Update module dependencies
-    sudo depmod -a
-    
+
     echo_info "Uninstall complete. Please reboot."
 }
 
